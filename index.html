@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>字源 · 汉字溯源</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="ink-wash" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="#top">字源</a>
+    <nav class="char-nav" id="charNav" aria-label="汉字列表"></nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" id="hero">
+      <div class="hero-copy">
+        <p class="brand-mark">字源</p>
+        <h1 class="hero-char" id="heroChar">山</h1>
+        <p class="hero-lead" id="heroLead">象形字。描摹峰峦起伏之形，是自然与方位的根基。</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#analysis">查看解析</a>
+          <a class="btn ghost" href="#evolution">追溯演变</a>
+        </div>
+      </div>
+      <div class="hero-glyph" aria-hidden="true">
+        <span class="glyph-shadow" id="glyphShadow">山</span>
+      </div>
+    </section>
+
+    <section class="panel" id="analysis">
+      <header class="panel-head">
+        <h2>文字解析</h2>
+        <p>结构、本义与用法</p>
+      </header>
+      <div class="analysis-grid">
+        <dl class="meta-list">
+          <div>
+            <dt>结构</dt>
+            <dd id="metaStructure">独体象形</dd>
+          </div>
+          <div>
+            <dt>部首</dt>
+            <dd id="metaRadical">山</dd>
+          </div>
+          <div>
+            <dt>笔画</dt>
+            <dd id="metaStrokes">3 画</dd>
+          </div>
+          <div>
+            <dt>造字</dt>
+            <dd id="metaMethod">象形</dd>
+          </div>
+        </dl>
+        <article class="prose">
+          <h3>本义</h3>
+          <p id="meaningText"></p>
+          <h3>引申与用法</h3>
+          <p id="usageText"></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel tone-panel" id="reading">
+      <header class="panel-head">
+        <h2>文字读音</h2>
+        <p>拼音、声调与例词</p>
+      </header>
+      <div class="reading-layout">
+        <div class="pinyin-block">
+          <span class="pinyin" id="pinyinText">shān</span>
+          <button type="button" class="btn speak" id="speakBtn" aria-label="朗读读音">朗读</button>
+        </div>
+        <ul class="example-list" id="exampleList"></ul>
+      </div>
+    </section>
+
+    <section class="panel" id="evolution">
+      <header class="panel-head">
+        <h2>文字演变</h2>
+        <p>从甲骨到楷书的形体脉络</p>
+      </header>
+      <ol class="evo-track" id="evoTrack"></ol>
+      <p class="evo-note" id="evoNote"></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>字源 · 汉字介绍模版 · 可替换 <code>data.js</code> 中的条目扩展内容</p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
