@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#1e293b" />
+<title>方程绘图器</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div id="app">
+  <!-- 顶部标题栏 -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">∿</span>
+      <span class="brand-name">方程绘图器</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-hint" id="topbarHint">离线可用</span>
+      <button class="help-btn" id="homeBtn" type="button" aria-label="返回主页" onclick="location.href='index.html'">⌂</button>
+      <button class="help-btn" id="helpBtn" type="button" aria-label="使用帮助">?</button>
+    </div>
+  </header>
+
+  <!-- 页面容器 -->
+  <main class="pages">
+    <!-- 页面一：绘图 -->
+    <section class="page" id="page-grapher" data-page="grapher">
+      <div class="card">
+        <div class="field">
+          <label for="eqName">图表名称</label>
+          <input id="eqName" type="text" placeholder="例如：二次函数 / 正弦波" maxlength="40" />
+        </div>
+
+        <div class="eq-list" id="eqList"><!-- 方程行由脚本生成 --></div>
+
+        <button class="btn btn-ghost btn-block" id="addEq">＋ 添加方程</button>
+
+        <div class="palette-title">特殊方程式符号</div>
+        <div class="palette" id="palette"><!-- 符号按钮由脚本生成 --></div>
+
+        <div class="view-settings">
+          <div class="vs-row">
+            <div class="field small">
+              <label>X 最小</label>
+              <input id="xMin" type="number" value="-10" step="0.5" />
+            </div>
+            <div class="field small">
+              <label>X 最大</label>
+              <input id="xMax" type="number" value="10" step="0.5" />
+            </div>
+          </div>
+          <div class="vs-row">
+            <label class="checkbox">
+              <input id="yAuto" type="checkbox" checked />
+              <span>Y 轴自动适配</span>
+            </label>
+          </div>
+          <div class="vs-row" id="yManualRow" hidden>
+            <div class="field small">
+              <label>Y 最小</label>
+              <input id="yMin" type="number" value="-10" step="0.5" />
+            </div>
+            <div class="field small">
+              <label>Y 最大</label>
+              <input id="yMax" type="number" value="10" step="0.5" />
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="drawBtn">绘制图像</button>
+          <button class="btn btn-ghost" id="fitBtn">适配视图</button>
+          <button class="btn btn-save" id="saveBtn">保存数据</button>
+        </div>
+      </div>
+
+      <div class="card plot-card">
+        <div class="plot-wrap">
+          <canvas id="plot"></canvas>
+        </div>
+        <div class="plot-status" id="plotStatus">输入方程后点击「绘制图像」</div>
+      </div>
+    </section>
+
+    <!-- 页面二：数据 -->
+    <section class="page" id="page-data" data-page="data" hidden>
+      <div class="card">
+        <div class="data-head">
+          <h2>已保存的数据</h2>
+          <span class="data-count" id="dataCount">0 条</span>
+        </div>
+        <div class="data-list" id="dataList"><!-- 由脚本生成 --></div>
+        <div class="empty-tip" id="dataEmpty">还没有保存任何方程。去「绘图」页画一张并点「保存数据」。</div>
+      </div>
+    </section>
+
+    <!-- 页面三：关于 -->
+    <section class="page" id="page-about" data-page="about" hidden>
+      <div class="card">
+        <h2>关于本应用</h2>
+        <p class="about-text">
+          这是一个<strong>纯本地</strong>的方程图像绘制工具。所有数据仅保存在你的手机浏览器中，不会上传到任何服务器。
+        </p>
+        <ul class="about-list">
+          <li><strong>绘图：</strong>输入方程表达式（如 <code>x^2</code>、<code>sin(x)</code>），点「绘制图像」即可在 xy 坐标系查看曲线，支持多条曲线与符号面板。</li>
+          <li><strong>数据：</strong>点「保存数据」可把当前方程集存到本地，随时编辑、删除、重新绘制。</li>
+          <li><strong>安装到手机：</strong>用安卓 Chrome 打开本页 → 点右上角菜单 →「添加到主屏幕」，即可像 App 一样离线使用。</li>
+        </ul>
+        <p class="about-ver">版本 1.0 · 离线网页应用</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- 底部导航 -->
+  <nav class="tabbar">
+    <button class="tab active" data-target="grapher">
+      <span class="tab-ico">∿</span><span class="tab-txt">绘图</span>
+    </button>
+    <button class="tab" data-target="data">
+      <span class="tab-ico">▤</span><span class="tab-txt">数据</span>
+    </button>
+    <button class="tab" data-target="about">
+      <span class="tab-ico">ⓘ</span><span class="tab-txt">关于</span>
+    </button>
+  </nav>
+</div>
+
+<!-- 编辑/删除确认弹层 -->
+<div class="sheet-mask" id="sheetMask" hidden>
+  <div class="sheet">
+    <div class="sheet-title" id="sheetTitle">确认</div>
+    <div class="sheet-body" id="sheetBody"></div>
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" id="sheetCancel">取消</button>
+      <button class="btn btn-danger" id="sheetOk">删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 使用帮助弹层 -->
+<div class="sheet-mask" id="helpMask" hidden>
+  <div class="sheet">
+    <div class="sheet-title">使用帮助</div>
+    <div class="sheet-body" id="helpBody">
+      <p><strong>输入方程</strong>：直接输入表达式，例如 <code>x^2</code>、<code>sin(x)</code>、<code>ln(x)</code>、<code>sqrt(x)</code>。</p>
+      <p><strong>x 的多次方</strong>：用 <code>^</code> 表示乘方。例如 <code>x^2</code>（平方）、<code>x^3</code>（立方）、<code>x^n</code>（n 次方）；也可直接点面板上的 <code>x²</code> 按钮。</p>
+      <p><strong>变量与乘号</strong>：变量是斜体紫色的 <code>x</code>；乘号用 <code>×</code> 或 <code>*</code>，例如 <code>2x</code> 或 <code>2*x</code> 均可。</p>
+      <p><strong>特殊符号</strong>：点下方符号面板即可插入到光标处。</p>
+      <p><strong>保存数据</strong>：点「保存数据」把当前方程集存到本地，可在「数据」页编辑、删除、重绘。</p>
+      <p><strong>安装到手机</strong>：用安卓 Chrome 打开本页 → 右上角菜单 →「添加到主屏幕」即可离线使用。</p>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn-primary" id="helpClose">知道了</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/lib/math.js"></script>
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/grapher.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

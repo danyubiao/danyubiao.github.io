@@ -1,100 +1,60 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>字源 · 汉字溯源</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#1e293b" />
+<title>我的网页 · 导航</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="stylesheet" href="assets/css/style.css" />
+<link rel="stylesheet" href="assets/css/home.css" />
 </head>
 <body>
-  <div class="ink-wash" aria-hidden="true"></div>
-
-  <header class="site-header">
-    <a class="brand" href="#top">字源</a>
-    <nav class="char-nav" id="charNav" aria-label="汉字列表"></nav>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">⌂</span>
+      <span class="brand-name">我的网页</span>
+    </div>
+    <div class="topbar-right">
+      <button class="help-btn" id="manageBtn" type="button" aria-label="管理">✎</button>
+      <button class="help-btn" id="addBtn" type="button" aria-label="添加网页">＋</button>
+    </div>
   </header>
 
-  <main id="top">
-    <section class="hero" id="hero">
-      <div class="hero-copy">
-        <p class="brand-mark">字源</p>
-        <h1 class="hero-char" id="heroChar">山</h1>
-        <p class="hero-lead" id="heroLead">象形字。描摹峰峦起伏之形，是自然与方位的根基。</p>
-        <div class="hero-actions">
-          <a class="btn primary" href="#analysis">查看解析</a>
-          <a class="btn ghost" href="#evolution">追溯演变</a>
-        </div>
-      </div>
-      <div class="hero-glyph" aria-hidden="true">
-        <span class="glyph-shadow" id="glyphShadow">山</span>
-      </div>
-    </section>
-
-    <section class="panel" id="analysis">
-      <header class="panel-head">
-        <h2>文字解析</h2>
-        <p>结构、本义与用法</p>
-      </header>
-      <div class="analysis-grid">
-        <dl class="meta-list">
-          <div>
-            <dt>结构</dt>
-            <dd id="metaStructure">独体象形</dd>
-          </div>
-          <div>
-            <dt>部首</dt>
-            <dd id="metaRadical">山</dd>
-          </div>
-          <div>
-            <dt>笔画</dt>
-            <dd id="metaStrokes">3 画</dd>
-          </div>
-          <div>
-            <dt>造字</dt>
-            <dd id="metaMethod">象形</dd>
-          </div>
-        </dl>
-        <article class="prose">
-          <h3>本义</h3>
-          <p id="meaningText"></p>
-          <h3>引申与用法</h3>
-          <p id="usageText"></p>
-        </article>
-      </div>
-    </section>
-
-    <section class="panel tone-panel" id="reading">
-      <header class="panel-head">
-        <h2>文字读音</h2>
-        <p>拼音、声调与例词</p>
-      </header>
-      <div class="reading-layout">
-        <div class="pinyin-block">
-          <span class="pinyin" id="pinyinText">shān</span>
-          <button type="button" class="btn speak" id="speakBtn" aria-label="朗读读音">朗读</button>
-        </div>
-        <ul class="example-list" id="exampleList"></ul>
-      </div>
-    </section>
-
-    <section class="panel" id="evolution">
-      <header class="panel-head">
-        <h2>文字演变</h2>
-        <p>从甲骨到楷书的形体脉络</p>
-      </header>
-      <ol class="evo-track" id="evoTrack"></ol>
-      <p class="evo-note" id="evoNote"></p>
-    </section>
+  <main class="pages">
+    <p class="home-intro">这里汇集你制作的所有网页，点卡片即可打开。点右上角「＋」添加新网页，点「✎」进入管理模式（编辑 / 删除）。</p>
+    <div class="app-grid" id="appGrid"><!-- 由脚本生成 --></div>
   </main>
 
-  <footer class="site-footer">
-    <p>字源 · 汉字介绍模版 · 可替换 <code>data.js</code> 中的条目扩展内容</p>
-  </footer>
+  <!-- 添加/编辑弹层 -->
+  <div class="sheet-mask" id="editMask" hidden>
+    <div class="sheet">
+      <div class="sheet-title" id="editTitle">添加网页</div>
+      <div class="sheet-body">
+        <div class="field">
+          <label for="inName">名称</label>
+          <input id="inName" type="text" placeholder="如：方程绘图器" maxlength="30" />
+        </div>
+        <div class="field">
+          <label for="inUrl">地址（网页路径或网址）</label>
+          <input id="inUrl" type="text" placeholder="grapher.html 或 https://..." />
+        </div>
+        <div class="field">
+          <label for="inIcon">图标（一个 emoji 或单字，可选）</label>
+          <input id="inIcon" type="text" placeholder="∿" maxlength="2" />
+        </div>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn btn-ghost" id="editCancel">取消</button>
+        <button class="btn btn-danger" id="editDel" style="display:none">删除</button>
+        <button class="btn btn-primary" id="editSave">保存</button>
+      </div>
+    </div>
+  </div>
 
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="assets/js/home.js"></script>
 </body>
 </html>
