@@ -21,7 +21,10 @@
   // 首次使用预置方程绘图器
   var entries = read();
   if (!entries) {
-    entries = [{ name: '方程绘图器', url: 'grapher.html', icon: '∿' }];
+    entries = [
+      { name: '方程绘图器', url: 'grapher.html', icon: '∿' },
+      { name: '字源·汉字溯源', url: 'ziyuan/index.html', icon: '字' }
+    ];
     write(entries);
   }
 
