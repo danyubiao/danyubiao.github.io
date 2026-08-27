@@ -602,7 +602,7 @@
 
                 <div class="image-source-info">
                     <h3><i class="fas fa-info-circle"></i> 图片说明</h3>
-                    <p>游戏使用预定义的图片库，包含各种表情图片。每个难度级别会从图片库中随机选择对应数量的图片。</p>
+                    <p>游戏从图片库中随机选取图片。若某张加载失败，会自动跳过并更换为其它可用图片，保证每局都能正常进行。</p>
                 </div>
             </div>
         </div>
@@ -709,6 +709,27 @@
             'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/youxi/cxxy/biaoqingbao_9.jpg'
         ];
 
+        // 已验证可用的图片集合（页面加载时异步探测填充）
+        let availableImages = [];
+        let imagesProbed = false; // 探测是否完成
+
+        // 异步探测每张候选图是否真的可加载；不可用的自动剔除。
+        // 之后选图只会从 availableImages 里挑，实现“坏图自动换成好图”。
+        function probeImages(callback) {
+            let pending = imageUrlList.length;
+            if (pending === 0) { imagesProbed = true; if (callback) callback(); return; }
+            imageUrlList.forEach(function (url) {
+                const test = new Image();
+                test.onload = function () { availableImages.push(url); done(); };
+                test.onerror = function () { done(); }; // 加载失败：跳过，不选它
+                test.src = url;
+                function done() {
+                    pending--;
+                    if (pending === 0) { imagesProbed = true; if (callback) callback(); }
+                }
+            });
+        }
+
         // DOM元素
         const cardsContainer = document.getElementById('cardsContainer');
         const movesElement = document.getElementById('moves');
@@ -811,7 +832,9 @@
                 img.alt = `卡片图片 ${Math.floor(i/2)+1}`;
                 img.loading = "lazy";
                 img.onerror = function() {
-                    // 如果图片加载失败，显示替代内容
+                    // 图片加载失败：显示“?”占位。此处不替换 src，
+                    // 是为了保持 card.dataset.value 不变，确保两张配对卡仍能正确匹配。
+                    // 真正“换成别的图”是在选图阶段完成的（只选已探测可用的图）。
                     this.onerror = null;
                     this.style.display = 'none';
                     const fallback = document.createElement('div');
@@ -855,17 +878,20 @@
 
         // 从图片列表中随机选择指定数量的图片
         function getRandomImagesFromList(count) {
-            // 复制图片列表
-            const shuffled = [...imageUrlList];
+            // 探测完成且有可用图 → 只用可用图（已自动剔除坏图）；
+            // 否则先用全量列表兜底，保证页面一打开就能玩。
+            const pool = (imagesProbed && availableImages.length) ? availableImages : imageUrlList;
+            if (pool.length === 0) return [];
 
-            // 随机排序
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            // 随机排序（复制后再打乱，不动原数组）
+            const shuffled = shuffleArray(pool.slice());
+
+            // 取前 count 张；若可用图不足（极少见），循环复用凑够对数
+            const result = [];
+            for (let i = 0; i < count; i++) {
+                result.push(shuffled[i % shuffled.length]);
             }
-
-            // 返回前count个图片
-            return shuffled.slice(0, count);
+            return result;
         }
 
         // 更新图片预览
@@ -1065,9 +1091,16 @@
             lastTouchEnd = now;
         }, false);
 
-        // 初始化游戏
+        // 初始化游戏（先用全量图片兜底，保证立即可玩）
         updateImagePreview();
         initGame();
+
+        // 后台探测图片可用性：完成后刷新预览，并在未开局时重渲染棋盘，
+        // 使正式开局只用“已验证可用”的图片（坏图已被自动剔除）。
+        probeImages(function () {
+            updateImagePreview();
+            if (!gameStarted) initGame();
+        });
 
 </script>
 </body>
