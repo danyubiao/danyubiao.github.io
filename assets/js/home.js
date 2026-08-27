@@ -18,13 +18,27 @@
     try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {}
   }
 
-  // 首次使用预置方程绘图器
+  // 默认导航卡片：汇集所有已制作的网页；以后新增网页在此补充即可
+  var DEFAULTS = [
+    { name: '方程绘图器', url: 'grapher.html', icon: '∿' },
+    { name: '字源·汉字溯源', url: 'ziyuan/index.html', icon: '字' },
+    { name: '出行预测', url: 'zyhj/yuCeChuXing.html', icon: '行' },
+    { name: '经络穴位查询', url: 'zyhj/JingLuoShiEr.html', icon: '穴' },
+    { name: '流面相册', url: 'LiuMianXiangCe/LiuMianXiangCe.html', icon: '册' },
+    { name: '旋转画廊', url: 'LiuMianXiangCe/xuanZhuanHuaLang.html', icon: '旋' },
+    { name: '小语翻翻乐', url: 'youxi/XiaoYuFanFanLe.html', icon: '戏' }
+  ];
+
   var entries = read();
   if (!entries) {
-    entries = [
-      { name: '方程绘图器', url: 'grapher.html', icon: '∿' },
-      { name: '字源·汉字溯源', url: 'ziyuan/index.html', icon: '字' }
-    ];
+    // 首次使用：直接用默认卡片
+    entries = DEFAULTS.slice();
+    write(entries);
+  } else {
+    // 已存在本地数据：按 url 去重，补齐新增的默认卡片（不覆盖用户自定义与排序）
+    var have = {};
+    entries.forEach(function (e) { have[e.url] = true; });
+    DEFAULTS.forEach(function (d) { if (!have[d.url]) entries.push(d); });
     write(entries);
   }
 

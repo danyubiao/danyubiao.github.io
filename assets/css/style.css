@@ -141,3 +141,8 @@ body{
 .sheet-body code{background:#f1f5f9;padding:1px 6px;border-radius:6px;font-size:13px;color:#0f172a;}
 .sheet-actions{display:flex;gap:10px;}
 .sheet-actions .btn{flex:1;}
+
+/* 桌面端：内容容器加宽并居中，绘图更舒展 */
+@media (min-width:760px){
+  .pages{max-width:960px;}
+}

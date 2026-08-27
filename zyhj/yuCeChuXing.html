@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>出行预测</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 20px 16px;
+            line-height: 1.7;
+            color: #1f2937;
+            background: #fafafa;
+        }
+        span {
+            font-size: clamp(18px, 5vw, 28px);
+        }
+        input, select, button {
+            font-size: 16px;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        #chuxingan, #chuxingan1, #DataTime4 {
+            display: block;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin-top: 10px;
+            font-size: 15px;
+            line-height: 1.8;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 12px;
+        }
+        #jindu { border-radius: 6px; }
+    </style>
+    <script type="text/javascript">
+        var dayytz = 0
+        var jqsj = new Date()
+        var jqsj2 = new Date()
+        var dqjq = ""
+        window.onload = function () {
+            //每1秒刷新时间
+            yearGz();
+            moonGz();
+            dayGz();
+            hour();
+            setInterval("NowTime()", 1000);
+        }
+        var daynum = {
+            "0": "子",
+            "1": "丑",
+            "2": "丑",
+            "3": "寅",
+            "4": "寅",
+            "5": "卯",
+            "6": "卯",
+            "7": "辰",
+            "8": "辰",
+            "9": "巳",
+            "10": "巳",
+            "11": "午",
+            "12": "午",
+            "13": "未",
+            "14": "未",
+            "15": "申",
+            "16": "申",
+            "17": "酉",
+            "18": "酉",
+            "19": "戌",
+            "20": "戌",
+            "21": "亥",
+            "22": "亥",
+            "23": "子",
+            "24": "子"
+        }
+        var yeargz = ""
+        var daygz = ""
+        var moongz = ""
+        var hourgz = ""
+        var zhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+        var gan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
+        var ganzhi = ['甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉',
+            '甲戌', '乙亥', '丙子', '丁丑', '戊寅', '己卯', '庚辰', '辛巳', '壬午', '癸未',
+            '甲申', '乙酉', '丙戌', '丁亥', '戊子', '己丑', '庚寅', '辛卯', '壬辰', '癸巳',
+            '甲午', '乙未', '丙申', '丁酉', '戊戌', '己亥', '庚子', '辛丑', '壬寅', '癸卯',
+            '甲辰', '乙巳', '丙午', '丁未', '戊申', '己酉', '庚戌', '辛亥', '壬子', '癸丑',
+            '甲寅', '乙卯', '丙辰', '丁巳', '戊午', '己未', '庚申', '辛酉', '壬戌', '癸亥']
+        var jqsjc = {
+            "2024": {
+                '立春': [1707035220000, 1709605320000],
+                '惊蛰': [1709605320000, 1712214120000],
+                '清明': [1712214120000, 1714867800000],
+                '立夏': [1714867800000, 1717560600000],
+                '芒种': [1717560600000, 1720275600000],
+                '小暑': [1720275600000, 1722989340000],
+                '立秋': [1722989340000, 1725678660000],
+                '白露': [1725678660000, 1728327600000],
+                '寒露': [1728327600000, 1730931600000],
+                '立冬': [1730931600000, 1733498220000],
+                '大雪': [1733498220000, 1736110140000],
+                '小寒': [1736110140000, 1738591826000]
+            },
+            "2025": {
+                '立春': [1738591826000, 1741162035000],
+                '惊蛰': [1741162035000, 1743770914000],
+                '清明': [1743770914000, 1746424630000],
+                '立夏': [1746424630000, 1749117389000],
+                '芒种': [1749117389000, 1751832297000],
+                '小暑': [1751832297000, 1754545892000],
+                '立秋': [1754545892000, 1757235115000],
+                '白露': [1757235115000, 1759884070000],
+                '寒露': [1759884070000, 1762488242000],
+                '立冬': [1762488242000, 1765055074000],
+                '大雪': [1765055074000, 1767601387000],
+                '小寒': [1767601387000, 1767601387000]
+            },
+            "2026": {
+                '立春': [1770148925000, 1772719137000],
+                '惊蛰': [1772719137000, 1775327997000],
+                '清明': [1775327997000, 1777981721000],
+                '立夏': [1777981721000, 1780674498000],
+                '芒种': [1780674498000, 1783389414000],
+                '小暑': [1783389414000, 1786102960000],
+                '立秋': [1786102960000, 1788792073000],
+                '白露': [1788792073000, 1791440954000],
+                '寒露': [1791440954000, 1794045121000],
+                '立冬': [1794045121000, 1796611949000],
+                '大雪': [1796611949000, 1799158195000],
+                '小寒': [1799158195000, 1799158195000]
+            },
+            "2027": {
+                '立春': [1801705596000, 1804275580000],
+                '惊蛰': [1804275580000, 1806884209000],
+                '清明': [1806884209000, 1809537828000],
+                '立夏': [1809537828000, 1812230693000],
+                '芒种': [1812230693000, 1814945821000],
+                '小暑': [1814945821000, 1817659610000],
+                '立秋': [1817659610000, 1820348892000],
+                '白露': [1820348892000, 1822997791000],
+                '寒露': [1822997791000, 1825601880000],
+                '立冬': [1825601880000, 1828168642000],
+                '大雪': [1828168642000, 1830714876000],
+                '小寒': [1830714876000, 1830714876000]
+            }
+
+
+        }
+
+        var yearmoongz = {
+            "甲": {
+                "立春": "丙寅",
+                "惊蛰": "丁卯",
+                "清明": "戊辰",
+                "立夏": "己巳",
+                "芒种": "庚午",
+                "小暑": "辛未",
+                "立秋": "壬申",
+                "白露": "癸酉",
+                "寒露": "甲戌",
+                "立冬": "乙亥",
+                "大雪": "丙子",
+                "小寒": "丁丑"
+            },
+            "乙": {
+                "立春": "戊寅",
+                "惊蛰": "己卯",
+                "清明": "庚辰",
+                "立夏": "辛巳",
+                "芒种": "壬午",
+                "小暑": "癸未",
+                "立秋": "甲申",
+                "白露": "乙酉",
+                "寒露": "丙戌",
+                "立冬": "丁亥",
+                "大雪": "戊子",
+                "小寒": "己丑",
+            },
+            "丙": {
+                "立春": "庚寅",
+                "惊蛰": "辛卯",
+                "清明": "壬辰",
+                "立夏": "癸巳",
+                "芒种": "甲午",
+                "小暑": "乙未",
+                "立秋": "丙申",
+                "白露": "丁酉",
+                "寒露": "戊戌",
+                "立冬": "己亥",
+                "大雪": "庚子",
+                "小寒": "辛丑"
+            },
+            "丁": {
+                "立春": "壬寅",
+                "惊蛰": "癸卯",
+                "清明": "甲辰",
+                "立夏": "乙巳",
+                "芒种": "丙午",
+                "小暑": "丁未",
+                "立秋": "戊申",
+                "白露": "己酉",
+                "寒露": "庚戌",
+                "立冬": "辛亥",
+                "大雪": "壬子",
+                "小寒": "癸丑"
+            },
+            "戊": {
+                "立春": "甲寅",
+                "惊蛰": "乙卯",
+                "清明": "丙辰",
+                "立夏": "丁巳",
+                "芒种": "戊午",
+                "小暑": "己未",
+                "立秋": "庚申",
+                "白露": "辛酉",
+                "寒露": "壬戌",
+                "立冬": "癸亥",
+                "大雪": "甲子",
+                "小寒": "乙丑"
+            },
+            "己": {
+                "立春": "丙寅",
+                "惊蛰": "丁卯",
+                "清明": "戊辰",
+                "立夏": "己巳",
+                "芒种": "庚午",
+                "小暑": "辛未",
+                "立秋": "壬申",
+                "白露": "癸酉",
+                "寒露": "甲戌",
+                "立冬": "乙亥",
+                "大雪": "丙子",
+                "小寒": "丁丑"
+            },
+            "庚": {
+                "立春": "戊寅",
+                "惊蛰": "己卯",
+                "清明": "庚辰",
+                "立夏": "辛巳",
+                "芒种": "壬午",
+                "小暑": "癸未",
+                "立秋": "甲申",
+                "白露": "乙酉",
+                "寒露": "丙戌",
+                "立冬": "丁亥",
+                "大雪": "戊子",
+                "小寒": "己丑",
+            },
+            "辛": {
+                "立春": "庚寅",
+                "惊蛰": "辛卯",
+                "清明": "壬辰",
+                "立夏": "癸巳",
+                "芒种": "甲午",
+                "小暑": "乙未",
+                "立秋": "丙申",
+                "白露": "丁酉",
+                "寒露": "戊戌",
+                "立冬": "己亥",
+                "大雪": "庚子",
+                "小寒": "辛丑"
+            },
+            "壬": {
+                "立春": "壬寅",
+                "惊蛰": "癸卯",
+                "清明": "甲辰",
+                "立夏": "乙巳",
+                "芒种": "丙午",
+                "小暑": "丁未",
+                "立秋": "戊申",
+                "白露": "己酉",
+                "寒露": "庚戌",
+                "立冬": "辛亥",
+                "大雪": "壬子",
+                "小寒": "癸丑"
+            },
+            "癸": {
+                "立春": "甲寅",
+                "惊蛰": "乙卯",
+                "清明": "丙辰",
+                "立夏": "丁巳",
+                "芒种": "戊午",
+                "小暑": "己未",
+                "立秋": "庚申",
+                "白露": "辛酉",
+                "寒露": "壬戌",
+                "立冬": "癸亥",
+                "大雪": "甲子",
+                "小寒": "乙丑"
+            },
+        }
+
+        var dayhourgz = {
+            "甲": {
+                "子": "甲子",
+                "丑": "乙丑",
+                "寅": "丙寅",
+                "卯": "丁卯",
+                "辰": "戊辰",
+                "巳": "己巳",
+                "午": "庚午",
+                "未": "辛未",
+                "申": "壬申",
+                "酉": "癸酉",
+                "戌": "甲戌",
+                "亥": "乙亥",
+            },
+            "乙": {
+                "子": "丙子",
+                "丑": "丁丑",
+                "寅": "戊寅",
+                "卯": "己卯",
+                "辰": "庚辰",
+                "巳": "辛巳",
+                "午": "壬午",
+                "未": "癸未",
+                "申": "甲申",
+                "酉": "乙酉",
+                "戌": "丙戌",
+                "亥": "丁亥",
+            },
+            "丙": {
+                "子": "戊子",
+                "丑": "己丑",
+                "寅": "庚寅",
+                "卯": "辛卯",
+                "辰": "壬辰",
+                "巳": "癸巳",
+                "午": "甲午",
+                "未": "乙未",
+                "申": "丙申",
+                "酉": "丁酉",
+                "戌": "戊戌",
+                "亥": "己亥",
+            },
+            "丁": {
+                "子": "庚子",
+                "丑": "辛丑",
+                "寅": "壬寅",
+                "卯": "癸卯",
+                "辰": "甲辰",
+                "巳": "乙巳",
+                "午": "丙午",
+                "未": "丁未",
+                "申": "戊申",
+                "酉": "己酉",
+                "戌": "庚戌",
+                "亥": "辛亥",
+            },
+            "戊": {
+                "子": "壬子",
+                "丑": "癸丑",
+                "寅": "甲寅",
+                "卯": "乙卯",
+                "辰": "丙辰",
+                "巳": "丁巳",
+                "午": "戊午",
+                "未": "己未",
+                "申": "庚申",
+                "酉": "辛酉",
+                "戌": "壬戌",
+                "亥": "癸亥",
+            },
+            "己": {
+                "子": "甲子",
+                "丑": "乙丑",
+                "寅": "丙寅",
+                "卯": "丁卯",
+                "辰": "戊辰",
+                "巳": "己巳",
+                "午": "庚午",
+                "未": "辛未",
+                "申": "壬申",
+                "酉": "癸酉",
+                "戌": "甲戌",
+                "亥": "乙亥",
+            },
+            "庚": {
+                "子": "丙子",
+                "丑": "丁丑",
+                "寅": "戊寅",
+                "卯": "己卯",
+                "辰": "庚辰",
+                "巳": "辛巳",
+                "午": "壬午",
+                "未": "癸未",
+                "申": "甲申",
+                "酉": "乙酉",
+                "戌": "丙戌",
+                "亥": "丁亥",
+            },
+            "辛": {
+                "子": "戊子",
+                "丑": "己丑",
+                "寅": "庚寅",
+                "卯": "辛卯",
+                "辰": "壬辰",
+                "巳": "癸巳",
+                "午": "甲午",
+                "未": "乙未",
+                "申": "丙申",
+                "酉": "丁酉",
+                "戌": "戊戌",
+                "亥": "己亥",
+            },
+            "壬": {
+                "子": "庚子",
+                "丑": "辛丑",
+                "寅": "壬寅",
+                "卯": "癸卯",
+                "辰": "甲辰",
+                "巳": "乙巳",
+                "午": "丙午",
+                "未": "丁未",
+                "申": "戊申",
+                "酉": "己酉",
+                "戌": "庚戌",
+                "亥": "辛亥",
+            },
+            "癸": {
+                "子": "壬子",
+                "丑": "癸丑",
+                "寅": "甲寅",
+                "卯": "乙卯",
+                "辰": "丙辰",
+                "巳": "丁巳",
+                "午": "戊午",
+                "未": "己未",
+                "申": "庚申",
+                "酉": "辛酉",
+                "戌": "壬戌",
+                "亥": "癸亥",
+            },
+        }
+
+        function yearGz() {
+            var time1 = new Date();
+            var timestamp = time1.getTime()
+            timestamp += dayytz * 24 * 60 * 60 * 1000
+            var time = new Date(timestamp)
+            var year = time.getFullYear();
+            var ygz_id = (year - 4) % 60
+            yeargz = ganzhi[ygz_id]
+        }
+
+        function moonGz() {
+            // 获取节气月份干支
+            var time1 = new Date();
+            var timestamp = time1.getTime()
+            timestamp += dayytz * 24 * 60 * 60 * 1000
+            var time = new Date(timestamp)
+            var newtimec = time.getTime();
+            var year = time.getFullYear();
+            if (newtimec >= jqsjc[String(year)]["立春"][0]) {
+                yearnl = year
+            }
+            if (newtimec < jqsjc[String(year)]["立春"][0]) {
+                yearnl = year - 1
+            }
+            dnjqsjc = jqsjc[String(yearnl)]
+            for (var i in dnjqsjc) {
+                if (newtimec <= dnjqsjc[i][1] && newtimec >= dnjqsjc[i][0]) {
+                    dqjq = i;
+                    jqsj = new Date(dnjqsjc[i][0]);
+                    jqsj2 = new Date(dnjqsjc[i][1]);
+                    moongz = yearmoongz[yeargz[0]][i];
+                }
+            }
+        }
+
+        function dayGz() {
+            var gan = {
+                "0": "己",
+                "1": "庚",
+                "2": "辛",
+                "3": "壬",
+                "4": "癸",
+                "5": "甲",
+                "6": "乙",
+                "7": "丙",
+                "8": "丁",
+                "9": "戊",
+            }
+            var zhi = {
+                "0": "巳", "1": "午", "2": "未", "3": "申", "4": "酉", "5": "戌", "6": "亥", "7": "子", "8": "丑", "9": "寅",
+                "10": "卯", "11": "辰",
+            }
+            var time1 = new Date();
+            var timestamp = time1.getTime()
+            timestamp += dayytz * 24 * 60 * 60 * 1000
+            var time = new Date(timestamp)
+            var timestamp1 = Math.round(time.getTime() / 1000).toString();
+            var day = (timestamp1 - 1652630400) / 60 / 60 / 24
+            day = Math.floor(day)
+            var dayg = ""
+            var dayz = ""
+            console.log(day)
+            if (day >= 10) {
+                dayg = day % 10
+            } else if (day < 10) {
+                dayg = day
+
+            }
+            if (day >= 12) {
+                dayz = day % 12
+            } else if (day < 12) {
+                dayz = day
+            }
+            var dgz = gan[dayg] + zhi[dayz];
+            daygz = dgz;
+        }
+
+        function hour() {
+            var time1 = new Date();
+            var timestamp = time1.getTime()
+            timestamp += dayytz * 24 * 60 * 60 * 1000
+            var h = new Date(timestamp).getHours();
+            var hz = daynum[String(h)];
+            hourgz = dayhourgz[daygz[0]][hz];
+        }
+
+        function minGz(min) {
+            var mgz_id = (min + 59) % 60
+            var mgz = ganzhi[mgz_id]
+            return mgz;
+        }
+
+        function secGz(sec) {
+            var sgz_id = (sec + 59) % 60
+            var sgz = ganzhi[sgz_id]
+            return sgz;
+
+        }
+
+        function NowTime() {
+
+            //获取年月日
+            var time1 = new Date();
+            var timestamp = time1.getTime()
+            timestamp += dayytz * 24 * 60 * 60 * 1000
+            var time = new Date(timestamp)
+            var year = time.getFullYear();
+            var month = time.getMonth() + 1;
+            var day = time.getDate();
+
+            //获取时分秒
+            var h = time.getHours();
+            var m = time.getMinutes();
+            var s = time.getSeconds();
+            if (m == 0) {
+                hour();
+            }
+
+
+            // 检查是否小于10
+            h = check(h);
+            // m=check(m);
+            // s=check(s);
+
+            // 给标签的html赋值
+            tp = ((h * 60 * 60 + m * 60 + s) / 86400 * 100).toFixed(2)
+            //'今天已经过去：' + tp + '%';
+            var m1 = minGz(m);
+            var s1 = secGz(s);
+            document.getElementById('DataTime').innerHTML = tp + '%';
+            document.getElementById('jindu').style.width = String(tp + '%');
+            document.getElementById('DataTime2').innerHTML = year + "年" + month + "月" + day + "日  " + h + ":" + m + ":" + s;
+            document.getElementById('DataTime3').innerHTML = yeargz + " " + moongz + " " + daygz + " " + hourgz + " " + m1 + " " + s1;
+            document.getElementById('DataTime4').innerHTML = dqjq + "：" + String(jqsj.getFullYear()) + "年" + String(jqsj.getMonth() + 1) + "月" + String(jqsj.getDate()) + "日  " + String(jqsj.getHours()) + ":" + String(jqsj.getMinutes()) + ":" + String(jqsj.getSeconds()) + "---" + String(jqsj2.getFullYear()) + "年" + String(jqsj2.getMonth() + 1) + "月" + String(jqsj2.getDate()) + "日  " + String(jqsj2.getHours()) + ":" + String(jqsj2.getMinutes()) + ":" + String(jqsj2.getSeconds());
+            // document.getElementById('DataTime4').innerHTML = String(new Date().getFullYear())+ "年" +String(new Date().getMonth()+1)+ "月" +String(new Date().getDate())+  "日  " +String(new Date().getHours())+ ":" +String(new Date().getMinutes())+ ":" +String(new Date().getSeconds());
+        }
+
+        //时间数字小于10，则在之前加个“0”补位。
+        function check(i) {
+            //三元运算
+            var num;
+            i < 10 ? num = "0" + i : num = i;
+            return num;
+        }
+
+        function zjyt() {
+            var daynu = document.getElementById("gbts").value;
+            if (daynu != "") {
+                dayytz = dayytz + parseInt(daynu)
+                yearGz();
+                moonGz();
+                dayGz();
+                hour();
+            }
+            else {
+                alert("请输入修改时间天数。");
+            }
+
+        }
+
+        function jsyt() {
+            var daynu = document.getElementById("gbts").value;
+            if (daynu != "") {
+                dayytz = dayytz - parseInt(daynu)
+                yearGz();
+                moonGz();
+                dayGz();
+                hour();
+            }
+            else {
+                alert("请输入修改时间天数。");
+            }
+        }
+
+        function chuxingf() {
+            var dzz = {'子': 9, '丑': 8, '寅': 7, '卯': 6, '辰': 5, '巳': 4, '午': 9, '未': 8, '申': 7, '酉': 6, '戌': 5, '亥': 4};
+            var tgg = {"甲": 9, '乙': 8, '丙': 7, '丁': 6, '戊': 5, '己': 9, '庚': 8, '辛': 7, '壬': 6, '癸': 5};
+            // var xiong = [14, 17, 19, 20, 23, 27]
+            // var jinum = [13, 15, 16, 18, 21, 22, 24, 25, 26]
+            var duan = {
+                '13': '十三数吉：十三遁甲见阴阳，西方乾宫老妇娘，手执棉布将小女，此时有应主亨昌。\n作事出门，推合阴阳，营谋嫁娶，起造营昌，子孙官贵，禄遇时良。',
+                '14': '十四数凶：遁甲具十四，东北有人至，白马或青驴，弓箭身穿紫。\n有人着紫，或是皂衣，前有大坑，后有白虎，凶恶相及，不宜嫁娶，休去远行，凡是遇难。',
+                '15': '十五数吉：南方有少女，牵牛抱婴孩，东方车与马，更有男赶来。\n日月在前，光明丽天，驷马时从，千事皆好，非但殡葬，宜亦修造。',
+                '16': '十六数吉：（如有妇人到，主大升官，得委诀。）东北有禽裴，西北白色衣，老人持仗撅，脱却西黄衣。\n山遇财珍，兼逢酒食，营谋起造，必遇贵人，交易婚姻，得宜获福。',
+                '17': '十七数凶：南方风雨云，西方中服于，两个驾车人，十七必逢是。\n死尸在前，病符在后，营谋嫁娶，所求灾咎，若遇此时，不获良久。',
+                '18': '十八数吉：南方有少妇，犬子与青驴，东方忽见行，克应必无疑。\n不宜嫁娶，万事吉昌，若遇此时，必要升官。',
+                '19': '十九数凶：鸦鹊并弓弩，钢铁东方舞，更有着白衣，西方唤驴狗。\n俱是凶兆，不是吉祥，故难推动，守静为良。',
+                '20': '二十数凶：北方有人驴，乾坤僧道尼，屠赶猪羊去，诸凶必应之。\n前有津梁，后有猪羊，若遇此时，万事俱秧。',
+                '21': '二十一数吉：东方有孝子，更有妇人逢，老人执仗板，西北应乾宫。\n此时所游，青云上盖，万事吉昌，不敢移动。',
+                '22': '二十二数吉：求乞持仗子，西方鼓笛声，坤兑应皆奇，提笼有妇人。\n乘车驾马，携酒相看，万事皆吉，必遇平安。',
+                '23': '二十三数凶：男妇携宝剑，南方执铁瓶，文字并猪羊，毁骂病迎门。\n万事重叠，难子远行，动则遇侵，静则安宁。',
+                '24': '二十四数吉：南方送福仙，少女手执钱，兑宫羊又至，物色黑青缠。\n飞鸟在前，玉士在后，则见长官，婚嫁无咎。',
+                '25': '二十五数吉：驴子共猿狲，南方有妇人，西方老人至，克应最为灵。\n见四足物，百事称心，出逢长者，更遇知音。',
+                '26': '二十六数吉：北方公文行，南方小儿啼，子孙封官禄，大吉不须疑。\n以上诸时，此时最吉，但试其事，万无一失。',
+                '27': '二十七数凶：台马共紫驴，西方一骑出。\n以上诸数，此数最恶，先贤详看，明应不错。'
+            }
+            var zhi_time = {
+                "子时": "23:00-00:59", "丑时": "01:00-02:59", "寅时": "03:00-04:59", "卯时": "05:00-06:59",
+                "辰时": "07:00-08:59", "巳时": "09:00-10:59", "午时": "11:00-12:59", "未时": "13:00-14:59",
+                "申时": "15:00-16:59", "酉时": "17:00-18:59", "戌时": "19:00-20:59", "亥时": "21:00-22:59",
+            }
+
+            // var x = [];
+            // var ji = [];
+            // var h = new Date().getHours();
+            var time1 = new Date();
+            var timestamp = time1.getTime();
+            timestamp += dayytz * 24 * 60 * 60 * 1000
+            var h = new Date(timestamp).getHours();
+            var a = tgg[daygz[0]];
+            var b = dzz[daygz[1]];
+            var c = dzz[daynum[String(h)]];
+            var nums = a + b + c;
+            document.getElementById("chuxingan").innerText = daygz + '日' + daynum[String(h)] + '时' + zhi_time[daynum[String(h)] + '时'] + '：\n' + duan[String(nums)];
+            var stt = "\n"
+            for (var i in dzz) {
+                var cc = dzz[i]
+                var numss = a + b + cc;
+                stt = stt + daygz + '日' + i + '时' + zhi_time[i + '时'] + '：\n' + duan[String(numss)] + "\n\n"
+            }
+            document.getElementById("chuxingan1").innerText = stt;
+        }
+
+    </script>
+</head>
+<body>
+<view>
+    <div>
+        <span>目前仅支持2024~2027年</span>
+        <br>
+        <span>公历：</span><span id="DataTime2"></span>
+        <br>
+        <span>干支：</span><span id="DataTime3"></span>
+        <br>
+        <span>当前节气：</span><span id="DataTime4"></span>
+        <div>
+            <div style="width: 100px;height: 10px;background-color: yellow">
+                <div style="width: 0%;height: 100%;background-color: green" id="jindu"></div>
+            </div>
+            <span>今天已经过去：</span><span id="DataTime"></span>
+        </div>
+        <div>
+            <button onclick="chuxingf()">预测出行</button>
+            <button onclick="jsyt()">减少天数时间</button>
+            <button onclick="zjyt()">增加天数时间</button>
+            <input id="gbts" placeholder="请输入改变天数的数字" oninput="value=value.replace(/[^\d]/g,'')" maxlength="7"/>
+
+        </div>
+        <div>
+            <span>当前时辰出行：</span><span id="chuxingan"> </span>
+        </div>
+        <div>
+            <span>所有时辰出行：</span><span id="chuxingan1"> </span>
+        </div>
+    </div>
+</view>
+</body>
+</html>
