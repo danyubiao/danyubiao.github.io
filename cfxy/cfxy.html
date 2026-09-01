@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#5b9bff">
+<title>小桌宠</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; min-height: 100%;
+    background: linear-gradient(160deg, #eaf1ff 0%, #f3ecff 45%, #fff6f8 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: #2b3244; overscroll-behavior: none;
+    -webkit-user-select: none; user-select: none;
+  }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    padding: 14px; padding-top: calc(14px + env(safe-area-inset-top));
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  }
+  .card {
+    width: min(100%, 420px); background: rgba(255,255,255,0.94);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border-radius: 20px; overflow: hidden;
+    box-shadow: 0 18px 44px rgba(60,80,150,0.18);
+    border: 1px solid rgba(255,255,255,0.7);
+    animation: pop .32s ease;
+  }
+  .card.fixed { position: fixed; margin: 0; z-index: 50; }
+  @keyframes pop { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+
+  .titlebar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px; color: #fff; cursor: grab; touch-action: none;
+    background: linear-gradient(135deg, #5b9bff, #8a6bff);
+  }
+  .title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; letter-spacing: .5px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.35); }
+  .ibtn {
+    width: 34px; height: 34px; border: 0; border-radius: 10px;
+    background: rgba(255,255,255,.2); color: #fff; font-size: 18px; line-height: 1;
+    transition: background .15s, transform .1s;
+  }
+  .ibtn:active { background: rgba(255,255,255,.4); transform: scale(.92); }
+
+  .body { padding: 12px; }
+  .pet {
+    height: min(40vh, 250px); border-radius: 16px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; touch-action: none;
+    background: radial-gradient(120% 120% at 50% 0%, #f2f5ff 0%, #e7edfb 60%, #dde5f7 100%);
+    box-shadow: inset 0 2px 8px rgba(120,140,200,.12);
+  }
+  .pet img { max-width: 100%; max-height: 100%; display: block; transition: transform .18s; }
+  .pet img:active { transform: scale(.96); }
+
+  .bubble {
+    position: relative; margin-top: 12px; padding: 12px 14px; border-radius: 14px;
+    background: #fff; border: 1px solid #e6ebf5;
+    box-shadow: 0 3px 12px rgba(60,80,150,.07);
+    font-family: "楷体","KaiTi","STKaiti",serif; line-height: 1.65; color: #2b6fd6;
+    white-space: pre-wrap; word-break: break-word; min-height: 62px;
+    transition: background .2s, border-color .2s;
+  }
+  .bubble::before {
+    content: ''; position: absolute; top: -7px; left: 22px;
+    border: 7px solid transparent; border-bottom-color: #fff;
+  }
+  .bubble.no-bg { background: transparent; border-color: transparent; box-shadow: none; }
+  .bubble.no-bg::before { display: none; }
+
+  .stats { display: flex; gap: 8px; margin-top: 10px; }
+  .stat { flex: 1; min-width: 0; }
+  .stat .row { display: flex; justify-content: space-between; font-size: 11px; color: #7b8494; margin-bottom: 4px; }
+  .stat .bar { height: 6px; border-radius: 3px; background: #eef0f5; overflow: hidden; }
+  .stat .bar i { display: block; height: 100%; width: 0; border-radius: 3px; background: #5b9bff; transition: width .5s, background .4s; }
+  .stat.good .bar i { background: #4ecb8f; }
+  .stat.warn .bar i { background: #ffc44f; }
+  .stat.low  .bar i { background: #ff7a6b; }
+  .stat.low  .row { color: #ff7a6b; }
+
+  .sname { font-size: 12px; color: #9aa3b2; margin: 9px 2px 0; text-align: center; }
+  .nav { display: flex; gap: 8px; margin-top: 11px; }
+  .nav button {
+    flex: 1; min-height: 46px; border: 0; border-radius: 12px;
+    background: #f1f3f7; color: #384152; font-size: 14px;
+    transition: background .15s, transform .1s;
+  }
+  .nav button:active { background: #e2e7ef; transform: scale(.97); }
+  .nav button.primary { background: linear-gradient(135deg, #5b9bff, #8a6bff); color: #fff; }
+  .nav button.primary:active { filter: brightness(1.08); }
+
+  .tip { text-align: center; font-size: 11px; color: #a8b0c0; margin-top: 12px; line-height: 1.7; }
+
+  /* ===== 菜单（手机友好：点击逐级进入，不用 hover）===== */
+  .mask { position: fixed; inset: 0; background: rgba(20,26,45,.42); z-index: 100; display: none; }
+  .mask.on { display: block; }
+  .menu {
+    position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: min(90vw, 340px); max-height: 78vh; z-index: 101; display: none;
+    flex-direction: column; overflow: hidden; border-radius: 16px;
+    background: rgba(255,255,255,.98); box-shadow: 0 20px 50px rgba(20,30,60,.3);
+  }
+  .menu.on { display: flex; animation: pop .18s ease; }
+  .menu-head {
+    padding: 13px 14px; font-size: 14px; font-weight: 600; color: #5b6bff;
+    border-bottom: 1px solid #eef0f5; display: flex; align-items: center; gap: 10px;
+  }
+  .menu-head .back { color: #8a93a6; font-weight: 400; cursor: pointer; }
+  .menu-list { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 6px; }
+  .mi {
+    padding: 14px 12px; border-radius: 10px; font-size: 14px; color: #2b3244;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .mi:active { background: #eef3ff; }
+  .mi .ar { color: #bcc3d0; font-size: 12px; }
+  .mi.disabled { color: #c3c8d2; }
+  .mi.disabled:active { background: transparent; }
+  .msep { height: 1px; background: #f0f2f6; margin: 6px 8px; }
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+  <div class="titlebar" id="titlebar">
+    <span class="title"><span class="dot"></span>小桌宠</span>
+    <button class="ibtn" id="btn-menu" aria-label="菜单">≡</button>
+  </div>
+  <div class="body">
+    <div class="pet" id="pet"><img id="img" alt="形象"></div>
+    <div class="bubble" id="bubble"></div>
+    <div class="stats" id="stats"></div>
+    <div class="sname" id="sname"></div>
+    <div class="nav">
+      <button id="btn-prev">上一张</button>
+      <button id="btn-sound" class="primary">播放声音</button>
+      <button id="btn-next">下一张</button>
+    </div>
+  </div>
+</div>
+<div class="tip">长按卡片或点右上 ≡ 开菜单 · 拖动标题栏可移动 · 轻点形象互动</div>
+
+<div class="mask" id="mask"></div>
+<div class="menu" id="menu">
+  <div class="menu-head" id="menu-head"></div>
+  <div class="menu-list" id="menu-list"></div>
+</div>
+
+<!-- 数据文件：与浏览器插件 data/slides.js 完全同结构（window.SLIDES / window.DIALOG_LIBS）。
+     改数据请改同目录的 slides.js，网页会自动读取；若该文件缺失，则用下面的内嵌快照兜底。 -->
+<script src="slides.js"></script>
+
+<script>
+/* ==========================================================
+   1) 数据配置
+   src   : 形象图片 / GIF / webp，可用相对路径('assets/xx.png')或网络地址('https://...')
+   audio : 声音文件(.wav/.mp3)，留空则用浏览器语音朗读 text
+   提示   ：手机上打开网页，图片和声音要用「网络地址」或随网页一起上传的相对路径，
+            手机读不到你电脑本地的文件（对象存储/CDN 的网址最省事）。
+            气泡每行字数会随卡片宽度自动调整，不用管换行。
+   ========================================================== */
+
+// 优先用同目录 slides.js（与插件 data/slides.js 同结构）；文件缺失时回退到这份内嵌快照。
+const SLIDES = window.SLIDES || [
+  {
+    src: 'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/normal/baibai.webp',
+    title: '拜拜',
+    text: '这是格的对话气泡文字，每十一个字富商大贾第三个会自动换行。点「播放声音」会播放你放入的音频文件。',
+    audio: 'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/audio/actionwav/%E6%8B%9C%E6%8B%9C.wav'
+  },
+  {
+    src: 'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/normal/dazhaohu.webp',
+    title: '打招呼',
+    text: '把 src 换成 .gif 路径即可展示动图，形象会动起来，就像桌宠待机动画一样。',
+    audio: 'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/audio/actionwav/%E6%9C%8B%E5%8F%8B%EF%BC%8C%E4%BD%A0%E5%A5%BD%EF%BC%8C%E6%88%91%E6%98%AF%E5%B0%8F%E8%AF%AD%E3%80%82.wav'
+  },
+  {
+    src: 'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/normal/huangtou.webp',
+    title: '晃头',
+    text: '将一张 GIF 命名为 sample-3.gif 放进 assets 目录，刷新即可看到动图循环播放。',
+    audio: 'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/audio/xiaoyu/%E5%97%AF%EF%BC%9F%E5%97%AF%EF%BC%9F%E6%80%AA%E6%88%91%E5%92%AF%EF%BC%9F.wav'
+  },
+  {
+    src: 'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/normal/kaixin.webp',
+    title: '开心',
+    text: '将一张 GIF 命名为 sample-3.gif 放进 assets 目录，刷新即可看到动图循环播放。',
+    audio: 'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/audio/actionwav/%E7%88%B1%E4%BD%A0%E4%BB%AC%EF%BC%8Cmua%20mua%20mua~.wav'
+  },
+  {
+    src: 'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/normal/xuanzhuan.webp',
+    title: '旋转',
+    text: '将一张 GIF 命名为 sample-3.gif 放进 assets 目录，刷新即可看到动图循环播放。',
+    audio: 'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/audio/quku/%E6%8A%8A%E5%A4%A7%E5%AE%B6%E5%AE%89%E5%85%A8%E9%80%81%E5%88%B0%E5%AE%B6%E5%96%8F%E3%80%82.wav'
+  },
+  {
+    src: 'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/normal/xuanzhuan2.webp',
+    title: '旋转',
+    text: '将一张 GIF 命名为 sample-3.gif 放进 assets 目录，刷新即可看到动图循环播放。',
+    audio: 'https://chunyu-1311908080.cos.ap-chengdu.myqcloud.com/audio/actionwav/%E8%B7%A8%E8%B6%8A%E6%AC%A1%E5%85%83%EF%BC%81%E6%9D%A5%E5%88%B0%E4%BD%A0%E7%9A%84%E8%BA%AB%E8%BE%B9%E5%96%8F%EF%BC%81.wav'
+  }
+];
+
+// 对话库：菜单「对话库」里可选，进入后每 5 秒随机抽一句
+const DIALOG_LIBS = window.DIALOG_LIBS || {
+  '古诗': [
+    '床前明月光，疑是地上霜。举头望明月，低头思故乡。',
+    '春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。',
+    '白日依山尽，黄河入海流。欲穷千里目，更上一层楼。'
+  ],
+  '情书': [
+    '今天的云很好看，我想拍给你看，却发现自己更想见到你。',
+    '如果思念有声音，大概整座城市此刻都在替我喊你的名字。',
+    '你不用做谁的光，你只要做你自己，我就愿意一直看着。'
+  ],
+  '学习': [
+    '学而不思则罔，思而不学则殆。',
+    '今日事今日毕，拖延是灵感最大的敌人。',
+    '把复杂的事拆成小步，每一步都不难，难的是开始。'
+  ],
+  '代办事项': [
+    '记得喝水、起身走两步，别一直盯着屏幕。',
+    '今天还有一件事没做，现在就去做掉它吧。',
+    '睡前把明天的计划写下来，明天会轻松很多。'
+  ]
+};
+
+/* ==========================================================
+   2) 以下是逻辑，一般不用改
+   ========================================================== */
+(function () {
+  const DEFAULT_ATTRS = { xiqing: 70, baoshi: 70, tili: 70, jiankang: 80 };
+  const KEY = 'fie-pet-web-v1';
+
+  const DEFAULTS = {
+    idx: 0, textBg: true, dialogLib: null, autoInterval: 0, autoVoice: false,
+    bubbleFont: 16, maxChars: 0, showStats: true, resting: false,
+    attrs: null, attrTickAt: 0, careAt: {}, pos: null
+  };
+
+  function load() {
+    let o = {};
+    try { o = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+    return {
+      idx: typeof o.idx === 'number' ? o.idx : 0,
+      textBg: o.textBg !== false,
+      dialogLib: o.dialogLib || null,
+      autoInterval: o.autoInterval || 0,
+      autoVoice: !!o.autoVoice,
+      bubbleFont: o.bubbleFont || 16,
+      maxChars: o.maxChars || 0,
+      showStats: o.showStats !== false,
+      resting: !!o.resting,
+      attrs: Object.assign({}, DEFAULT_ATTRS, o.attrs || {}),
+      attrTickAt: o.attrTickAt || Date.now(),
+      careAt: Object.assign({}, o.careAt || {}),
+      pos: o.pos || null
+    };
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  let st = load();
+
+  const $ = (id) => document.getElementById(id);
+  const card = $('card'), imgEl = $('img'), bubbleEl = $('bubble'),
+        statsEl = $('stats'), nameEl = $('sname'),
+        maskEl = $('mask'), menuEl = $('menu'), menuHead = $('menu-head'), menuList = $('menu-list');
+
+  let currentText = '', flashTimer = null, carouselTimer = null, dialogTimer = null;
+
+  // ---------- 工具 ----------
+  const clamp = (v) => Math.max(0, Math.min(100, Math.round(v * 100) / 100));
+  const clampAll = (a) => { Object.keys(a).forEach((k) => { a[k] = clamp(a[k]); }); return a; };
+
+  function measureCharWidth() {
+    const s = document.createElement('span');
+    s.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;' +
+      'font-family:"楷体","KaiTi","STKaiti",serif;font-size:' + st.bubbleFont + 'px;';
+    s.textContent = '中';
+    document.body.appendChild(s);
+    const w = s.getBoundingClientRect().width;
+    s.remove();
+    return w > 0 ? w : st.bubbleFont;
+  }
+  function computePerLine() {
+    const cs = getComputedStyle(bubbleEl);
+    const avail = bubbleEl.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    return Math.max(6, Math.floor(avail / measureCharWidth()));
+  }
+  function wrapText(text, n) {
+    if (!text) return '';
+    let out = '';
+    for (let i = 0; i < text.length; i++) {
+      out += text[i];
+      if ((i + 1) % n === 0 && i !== text.length - 1) out += '\n';
+    }
+    return out;
+  }
+  function setBubble(text) {
+    currentText = text || '';
+    const per = st.maxChars > 0 ? st.maxChars : computePerLine();
+    bubbleEl.textContent = wrapText(currentText, per);
+  }
+  function rerenderBubble() { if (currentText !== '') setBubble(currentText); }
+  function flashBubble(msg, ms) {
+    if (!msg) return;
+    clearTimeout(flashTimer);
+    const per = st.maxChars > 0 ? st.maxChars : computePerLine();
+    bubbleEl.textContent = wrapText(msg, per);
+    flashTimer = setTimeout(() => setBubble(currentText), ms || 2600);
+  }
+
+  // ---------- 属性系统 ----------
+  const DECAY = { xiqing: 0.15, baoshi: 0.4, tili: 0.25 }; // 每分钟
+  const REST_GAIN = 2.5;
+  const MAX_CATCHUP_MIN = 720; // 离线补算上限 12 小时
+
+  function decayOnce(a, resting, minutes) {
+    a.xiqing = clamp(a.xiqing - DECAY.xiqing * minutes);
+    a.baoshi = clamp(a.baoshi - DECAY.baoshi * minutes);
+    a.tili = clamp(resting ? a.tili + REST_GAIN * minutes : a.tili - DECAY.tili * minutes);
+    let dh;
+    if (a.baoshi < 20) dh = -0.5;
+    else if (a.tili < 15) dh = -0.3;
+    else if (a.xiqing > 60 && a.baoshi > 60 && a.tili > 60) dh = 0.25;
+    else dh = -0.05;
+    a.jiankang = clamp(a.jiankang + dh * minutes);
+    return a;
+  }
+
+  // 按真实流逝时间补算；不足 1 分钟不处理（避免多标签重复扣）
+  function tickAttrs() {
+    const now = Date.now();
+    let minutes = (now - (st.attrTickAt || now)) / 60000;
+    if (!isFinite(minutes) || minutes < 0) minutes = 0;
+    if (minutes < 0.9) return;
+    if (minutes > MAX_CATCHUP_MIN) minutes = MAX_CATCHUP_MIN;
+    st.attrs = decayOnce(st.attrs, st.resting, minutes);
+    st.attrTickAt = now;
+    save();
+    renderStats();
+    checkLowAttrs();
+  }
+
+  const CARE = {
+    feed:     { cd: 60000, apply: (a) => { a.baoshi += 20; a.jiankang += 1; }, ok: '吃饱啦，谢谢你~',   wait: '刚吃过啦，等一会儿嘛~' },
+    play:     { cd: 20000, apply: (a) => { a.xiqing += 8;  a.tili -= 1; },     ok: '嘿嘿，好玩！',       wait: '让我歇口气再玩~' },
+    interact: { cd: 10000, apply: (a) => { a.xiqing += 2; },                   ok: '',                   wait: '' },
+    boost:    { cd: 0,     apply: (a) => { a.xiqing += 2; a.baoshi += 2; a.tili += 2; a.jiankang += 2; }, ok: '神清气爽！', wait: '' }
+  };
+  function doCare(kind) {
+    const cfg = CARE[kind];
+    if (!cfg) return;
+    const now = Date.now();
+    if (cfg.cd && now - (st.careAt[kind] || 0) < cfg.cd) { flashBubble(cfg.wait, 2200); return; }
+    const a = Object.assign({}, st.attrs);
+    cfg.apply(a);
+    st.attrs = clampAll(a);
+    st.careAt[kind] = now;
+    save();
+    renderStats();
+    if (cfg.ok) flashBubble(cfg.ok, 2400);
+    checkLowAttrs();
+  }
+  function doRest() {
+    st.resting = !st.resting;
+    save();
+    flashBubble(st.resting ? '那我睡一会儿……体力会慢慢回来~' : '起床啦！伸个懒腰~', 2600);
+  }
+
+  // 属性太低时自己开口（同类 5 分钟内不重复）
+  const LOW_LINES = {
+    baoshi:   { th: 20, lines: ['肚子好饿哦……想吃点东西~', '主人，有吃的吗？'] },
+    tili:     { th: 15, lines: ['好累，想躺一会儿……', '哈啊——困了，想睡觉~'] },
+    xiqing:   { th: 20, lines: ['有点闷闷的，陪我玩会儿嘛~', '理理我嘛……'] },
+    jiankang: { th: 30, lines: ['感觉不太舒服……', '呜，有点难受'] }
+  };
+  const lowPromptAt = {};
+  function checkLowAttrs() {
+    const now = Date.now();
+    Object.keys(LOW_LINES).forEach((k) => {
+      const cfg = LOW_LINES[k];
+      if ((st.attrs[k] || 0) < cfg.th && now - (lowPromptAt[k] || 0) > 5 * 60000) {
+        lowPromptAt[k] = now;
+        const arr = cfg.lines;
+        flashBubble(arr[Math.floor(Math.random() * arr.length)], 3200);
+      }
+    });
+  }
+  function statusText() {
+    const a = st.attrs;
+    if (st.resting) return '休息中';
+    if (a.jiankang < 30) return '状态不佳';
+    if (a.baoshi < 20) return '饿扁了';
+    if (a.tili < 15) return '精疲力尽';
+    if (a.xiqing < 20) return '有点闷';
+    if (a.xiqing > 70 && a.baoshi > 70 && a.tili > 70 && a.jiankang > 70) return '元气满满';
+    return '还不错';
+  }
+
+  // ---------- 渲染 ----------
+  const STAT_DEFS = [
+    { key: 'xiqing', label: '心情' }, { key: 'baoshi', label: '饱食' },
+    { key: 'tili', label: '体力' }, { key: 'jiankang', label: '健康' }
+  ];
+  const level = (v) => (v >= 60 ? 'good' : v >= 30 ? 'warn' : 'low');
+
+  function renderStats() {
+    if (!st.showStats) { statsEl.style.display = 'none'; return; }
+    statsEl.style.display = 'flex';
+    statsEl.innerHTML = '';
+    STAT_DEFS.forEach((d) => {
+      const v = Math.round(st.attrs[d.key] || 0);
+      const wrap = document.createElement('div');
+      wrap.className = 'stat ' + level(v);
+      wrap.title = d.label + ' ' + v + ' / 100';
+      const row = document.createElement('div');
+      row.className = 'row';
+      const l = document.createElement('span'); l.textContent = d.label;
+      const val = document.createElement('span'); val.textContent = v;
+      row.appendChild(l); row.appendChild(val);
+      const bar = document.createElement('div'); bar.className = 'bar';
+      const fill = document.createElement('i'); fill.style.width = v + '%';
+      bar.appendChild(fill);
+      wrap.appendChild(row); wrap.appendChild(bar);
+      statsEl.appendChild(wrap);
+    });
+  }
+
+  function renderSlide() {
+    const s = SLIDES[st.idx];
+    if (!s) return;
+    imgEl.onerror = () => { imgEl.onerror = null; setBubble('图片加载失败：' + s.src + '\n换成本地相对路径或网络地址再试。'); };
+    imgEl.src = s.src;
+    setBubble(s.text || '');
+    nameEl.textContent = s.title || '';
+  }
+  function render() {
+    if (st.dialogLib && DIALOG_LIBS[st.dialogLib]) {
+      const arr = DIALOG_LIBS[st.dialogLib];
+      setBubble(arr[Math.floor(Math.random() * arr.length)] || '');
+    } else renderSlide();
+  }
+
+  // ---------- 声音 ----------
+  let audioEl = null;
+  function playSound(src) {
+    if (!src) return false;
+    try {
+      if (audioEl) { audioEl.pause(); audioEl = null; }
+      audioEl = new Audio(src);
+      audioEl.volume = 0.8;
+      const p = audioEl.play();
+      if (p && p.catch) p.catch(() => {});
+      return true;
+    } catch (e) { return false; }
+  }
+  function speakText(text) {
+    if (!('speechSynthesis' in window) || !text) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = 1; u.pitch = 1;
+    const voices = window.speechSynthesis.getVoices();
+    const zh = voices.find((v) => /zh|chinese|中文/i.test((v.lang || '') + ' ' + (v.name || '')));
+    if (zh) u.voice = zh;
+    window.speechSynthesis.speak(u);
+  }
+  function tryVoice(s) {
+    if (!s) return;
+    if (s.audio) {
+      if (!playSound(s.audio) && st.autoVoice) speakText(s.text);
+    } else if (st.autoVoice) speakText(s.text);
+  }
+  function playCurrent() {
+    if (st.dialogLib && DIALOG_LIBS[st.dialogLib]) {
+      if (st.autoVoice) speakText(bubbleEl.textContent || '');
+      return;
+    }
+    const s = SLIDES[st.idx];
+    // 没配音频时，直接朗读，保证点按钮一定有反馈
+    if (s && s.audio) tryVoice(s);
+    else speakText((s && s.text) || '');
+  }
+
+  // ---------- 切换 ----------
+  function goTo(i, withVoice) {
+    st.idx = ((i % SLIDES.length) + SLIDES.length) % SLIDES.length;
+    save();
+    if (!st.dialogLib) renderSlide(); else render();
+    if (withVoice) tryVoice(SLIDES[st.idx]);
+  }
+  const next = () => goTo(st.idx + 1, true);
+  const prev = () => goTo(st.idx - 1, true);
+
+  function applyCarousel() {
+    if (carouselTimer) { clearInterval(carouselTimer); carouselTimer = null; }
+    if (st.autoInterval > 0 && SLIDES.length > 1) {
+      carouselTimer = setInterval(() => goTo(st.idx + 1, false), st.autoInterval);
+    }
+  }
+  function applyDialogTimer() {
+    if (dialogTimer) { clearInterval(dialogTimer); dialogTimer = null; }
+    if (st.dialogLib && DIALOG_LIBS[st.dialogLib]) {
+      const arr = DIALOG_LIBS[st.dialogLib];
+      setBubble(arr[Math.floor(Math.random() * arr.length)] || '');
+      dialogTimer = setInterval(() => {
+        const t = arr[Math.floor(Math.random() * arr.length)] || '';
+        setBubble(t);
+        if (st.autoVoice) speakText(t);
+      }, 5000);
+    }
+  }
+  function setDialogLib(key) {
+    st.dialogLib = key || null;
+    save();
+    if (st.dialogLib) { nameEl.textContent = '对话库·' + st.dialogLib; applyDialogTimer(); }
+    else { renderSlide(); applyDialogTimer(); }
+  }
+
+  // ---------- 菜单（点击逐级进入，适合触屏） ----------
+  let menuStack = [];
+  function fontLabel() { return st.bubbleFont === 14 ? '小' : st.bubbleFont === 19 ? '大' : '中'; }
+  function charLabel() { return st.maxChars === 0 ? '自适应' : st.maxChars + ' 字'; }
+  function intervalLabel() {
+    return st.autoInterval === 0 ? '关闭' :
+      st.autoInterval === 10000 ? '10秒' : st.autoInterval === 30000 ? '30秒' : '5分钟';
+  }
+
+  function buildItems() {
+    const it = [];
+    it.push({ label: '动作', sub: SLIDES.map((s, i) => ({ label: s.title || ('第' + (i + 1) + '张'), action: () => goTo(i, true) })) });
+    it.push({
+      label: '属性',
+      sub: [
+        { label: '心情值 ' + Math.round(st.attrs.xiqing), disabled: true },
+        { label: '饱食度 ' + Math.round(st.attrs.baoshi), disabled: true },
+        { label: '体力值 ' + Math.round(st.attrs.tili), disabled: true },
+        { label: '健康值 ' + Math.round(st.attrs.jiankang), disabled: true },
+        { label: '属性+（四项各 +2）', action: () => doCare('boost') }
+      ]
+    });
+    it.push({
+      label: '照顾',
+      sub: [
+        { label: '喂食（饱食 +20）', action: () => doCare('feed') },
+        { label: '玩耍（心情 +8）', action: () => doCare('play') },
+        { label: st.resting ? '起床' : '休息（体力回升）', action: () => doRest() },
+        { label: '状态：' + statusText(), disabled: true }
+      ]
+    });
+    it.push({ sep: true });
+    it.push({
+      label: '显示',
+      sub: [
+        {
+          label: '字号 (' + fontLabel() + ')',
+          sub: [14, 16, 19].map((v) => ({
+            label: v === 14 ? '小' : v === 16 ? '中' : '大',
+            action: () => { st.bubbleFont = v; save(); applyStyle(); rerenderBubble(); }
+          }))
+        },
+        {
+          label: '每行字数 (' + charLabel() + ')',
+          sub: [
+            { label: '自适应', action: () => { st.maxChars = 0; save(); rerenderBubble(); } },
+            { label: '9 字', action: () => { st.maxChars = 9; save(); rerenderBubble(); } },
+            { label: '12 字', action: () => { st.maxChars = 12; save(); rerenderBubble(); } },
+            { label: '15 字', action: () => { st.maxChars = 15; save(); rerenderBubble(); } },
+            { label: '18 字', action: () => { st.maxChars = 18; save(); rerenderBubble(); } }
+          ]
+        },
+        {
+          label: '属性栏 (' + (st.showStats ? '开' : '关') + ')',
+          sub: [
+            { label: '开', action: () => { st.showStats = true; save(); renderStats(); } },
+            { label: '关', action: () => { st.showStats = false; save(); renderStats(); } }
+          ]
+        }
+      ]
+    });
+    const libSub = Object.keys(DIALOG_LIBS).map((k) => ({ label: k, action: () => setDialogLib(k) }));
+    if (st.dialogLib) libSub.push({ label: '（当前：' + st.dialogLib + '）', disabled: true });
+    libSub.push({ label: '关闭对话', disabled: !st.dialogLib, action: () => setDialogLib(null) });
+    it.push({ label: '对话库', sub: libSub });
+    it.push({ sep: true });
+    it.push({
+      label: '设置',
+      sub: [{
+        label: '自动轮播 (' + intervalLabel() + ')',
+        sub: [
+          { label: '关闭', action: () => { st.autoInterval = 0; save(); applyCarousel(); } },
+          { label: '10秒', action: () => { st.autoInterval = 10000; save(); applyCarousel(); } },
+          { label: '30秒', action: () => { st.autoInterval = 30000; save(); applyCarousel(); } },
+          { label: '5分钟', action: () => { st.autoInterval = 300000; save(); applyCarousel(); } }
+        ]
+      }]
+    });
+    it.push({
+      label: st.autoVoice ? '停止播放语音' : '播放语音',
+      action: () => { st.autoVoice = !st.autoVoice; save(); flashBubble(st.autoVoice ? '我会念给你听~' : '好，安静一会儿~', 2200); }
+    });
+    it.push({
+      label: st.textBg ? '关闭文字背景' : '打开文字背景',
+      action: () => { st.textBg = !st.textBg; save(); bubbleEl.classList.toggle('no-bg', !st.textBg); }
+    });
+    it.push({ sep: true });
+    it.push({ label: '重置存档（恢复默认）', action: () => {
+      if (window.confirm('确定重置？属性与设置都会恢复默认。')) { localStorage.removeItem(KEY); location.reload(); }
+    } });
+    return it;
+  }
+
+  function openMenu() {
+    menuStack = [{ title: '菜单', items: buildItems() }];
+    renderMenu();
+    maskEl.classList.add('on');
+    menuEl.classList.add('on');
+  }
+  function closeMenu() {
+    maskEl.classList.remove('on');
+    menuEl.classList.remove('on');
+    menuStack = [];
+  }
+  function renderMenu() {
+    const cur = menuStack[menuStack.length - 1];
+    menuHead.innerHTML = '';
+    if (menuStack.length > 1) {
+      const back = document.createElement('span');
+      back.className = 'back';
+      back.textContent = '‹ 返回';
+      back.addEventListener('click', () => { menuStack.pop(); renderMenu(); });
+      menuHead.appendChild(back);
+    }
+    const t = document.createElement('span');
+    t.textContent = cur.title;
+    menuHead.appendChild(t);
+
+    menuList.innerHTML = '';
+    cur.items.forEach((it) => {
+      if (it.sep) {
+        const sep = document.createElement('div');
+        sep.className = 'msep';
+        menuList.appendChild(sep);
+        return;
+      }
+      const el = document.createElement('div');
+      el.className = 'mi' + (it.disabled ? ' disabled' : '');
+      const s = document.createElement('span');
+      s.textContent = it.label;
+      el.appendChild(s);
+      if (it.sub) {
+        const ar = document.createElement('span');
+        ar.className = 'ar';
+        ar.textContent = '›';
+        el.appendChild(ar);
+      }
+      if (!it.disabled) {
+        el.addEventListener('click', () => {
+          if (it.sub) { menuStack.push({ title: it.label, items: it.sub }); renderMenu(); return; }
+          it.action();
+          closeMenu();
+        });
+      }
+      menuList.appendChild(el);
+    });
+  }
+  maskEl.addEventListener('click', closeMenu);
+  $('btn-menu').addEventListener('click', openMenu);
+
+  // ---------- 拖动 / 长按 / 轻点 ----------
+  let pressing = false, moved = false, off = { x: 0, y: 0 }, start = { x: 0, y: 0 }, pressTimer = null;
+
+  function toFixedPos() {
+    if (card.classList.contains('fixed')) return;
+    const r = card.getBoundingClientRect();
+    card.style.left = r.left + 'px';
+    card.style.top = r.top + 'px';
+    card.style.width = r.width + 'px';
+    card.classList.add('fixed');
+  }
+  function clampPos() {
+    if (!card.classList.contains('fixed')) return;
+    const r = card.getBoundingClientRect();
+    const maxL = Math.max(0, window.innerWidth - r.width - 6);
+    const maxT = Math.max(0, window.innerHeight - r.height - 6);
+    card.style.left = Math.min(Math.max(6, r.left), maxL) + 'px';
+    card.style.top = Math.min(Math.max(6, r.top), maxT) + 'px';
+  }
+
+  card.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;      // 按钮不参与拖动/长按
+    moved = false; pressing = true;
+    start = { x: e.clientX, y: e.clientY };
+    const r = card.getBoundingClientRect();
+    off = { x: e.clientX - r.left, y: e.clientY - r.top };
+    pressTimer = setTimeout(() => { if (!moved) { pressing = false; openMenu(); } }, 520);
+  });
+  card.addEventListener('pointermove', (e) => {
+    if (!pressing) return;
+    const dx = e.clientX - start.x, dy = e.clientY - start.y;
+    if (!moved && (Math.abs(dx) > 7 || Math.abs(dy) > 7)) {
+      moved = true;
+      clearTimeout(pressTimer);
+      toFixedPos();
+    }
+    if (moved) {
+      card.style.left = (e.clientX - off.x) + 'px';
+      card.style.top = (e.clientY - off.y) + 'px';
+      clampPos();
+    }
+  });
+  function endPress() {
+    clearTimeout(pressTimer);
+    pressing = false;
+    if (moved && st) { st.pos = { left: card.style.left, top: card.style.top }; save(); }
+  }
+  card.addEventListener('pointerup', endPress);
+  card.addEventListener('pointercancel', endPress);
+  card.addEventListener('contextmenu', (e) => { e.preventDefault(); openMenu(); });
+
+  // 轻点形象 = 切换 + 互动
+  imgEl.addEventListener('click', () => {
+    if (moved) return;
+    if (!st.dialogLib) goTo(st.idx + 1, true);
+    doCare('interact');
+  });
+
+  $('btn-prev').addEventListener('click', prev);
+  $('btn-next').addEventListener('click', next);
+  $('btn-sound').addEventListener('click', () => { playCurrent(); doCare('interact'); });
+
+  // ---------- 样式与自适应 ----------
+  function applyStyle() {
+    bubbleEl.style.fontSize = st.bubbleFont + 'px';
+    bubbleEl.classList.toggle('no-bg', !st.textBg);
+    if (st.pos && st.pos.left) {
+      card.classList.add('fixed');
+      card.style.left = st.pos.left;
+      card.style.top = st.pos.top;
+    }
+  }
+  window.addEventListener('resize', () => {
+    if (st.maxChars === 0) rerenderBubble();
+    clampPos();
+  });
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => { clampPos(); if (st.maxChars === 0) rerenderBubble(); }, 260);
+  });
+
+  // 多标签同步（同源）
+  window.addEventListener('storage', (e) => {
+    if (e.key !== KEY) return;
+    st = load();
+    applyStyle();
+    render();
+    renderStats();
+  });
+
+  // 页面切到后台再回来，补算衰减
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) tickAttrs(); });
+
+  // ---------- 启动 ----------
+  applyStyle();
+  if (st.dialogLib && DIALOG_LIBS[st.dialogLib]) { render(); applyDialogTimer(); }
+  else renderSlide();
+  renderStats();
+  tickAttrs();
+  setInterval(tickAttrs, 60000);
+  applyCarousel();
+
+  // 首次语音需要用户手势后才可用，这里静默预热一次
+  if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
+})();
+</script>
+</body>
+</html>
